@@ -6,6 +6,7 @@
     vpc_id: "{{ provision_ec2_aws_vpc_id }}"
     region: "{{ provision_ec2_aws_region }}"
     rules: "{{ provision_ec2_security_group_rules }}"
+    state: present
     tags:
       Name: "{{ provision_ec2_security_group_name }}"
       Environment: "{{ provision_ec2_environment }}"
