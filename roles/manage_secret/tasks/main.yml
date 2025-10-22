@@ -10,7 +10,7 @@
     state: file
     suffix: .crt
   register: manage_secret_temp_ca_cert
-  delegate_to: loacalhost
+  delegate_to: "{{ manage_secret_provision_control_host }}"
   run_once: true
 
 - name: Write the CA certificate to the temporary file
@@ -18,7 +18,7 @@
     content: "{{ manage_secret_vault_ca_cert_env_var }}"
     dest: "{{ manage_secret_vault_ca_cert_path }}"
     mode: "600"
-  delegate_to: loaclhost
+  delegate_to: "{{ manage_secret_provision_control_host }}"
   run_once: true
 
 - name: Store SSH secret
@@ -31,10 +31,10 @@
     engine_mount_point: "{{ manage_secret_vault_kv_mount }}"
     data: "{{ payload }}"
     ca_cert: "{{ manage_secret_vault_ca_cert_path }}"
-    validate_certs: "{{ provision_vault_connection.validate_certs | bool }}"
+    validate_certs: true
   when: manage_secret_action == 'write'
   register: manage_secret_vault_write_result
-  delegate_to: "{{ provision_control_host }}"
+  delegate_to: "{{ manage_secret_provision_control_host }}"
   run_once: true
 
 - name: Fetch SSH private key from Vault
@@ -46,7 +46,7 @@
     path: "{{ manage_secret_path }}"
     engine_mount_point: "{{ manage_secret_vault_kv_mount }}"
     ca_cert: "{{ manage_secret_vault_ca_cert_path }}"
-    validate_certs: "{{ provision_vault_connection.validate_certs | bool }}"
+    validate_certs: true
   when: manage_secret_action == 'get'
   register: manage_secret_data
-  delegate_to: "{{ provision_control_host }}"
+  delegate_to: "{{ manage_secret_provision_control_host }}"

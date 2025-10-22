@@ -61,7 +61,7 @@ provision_ec2_security_group_rules:
 
 # Route53
 provision_ec2_configure_route53: true
-provision_ec2_route53_zone_id: Z1234567890ABC
+provision_ec2_route53_zone: Z1234567890ABC
 provision_ec2_route53_record_name: sql01.example.com
 
 # Elastic IP

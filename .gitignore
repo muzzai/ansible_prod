@@ -1,2 +1,3 @@
 .ansible
 .vscode
+./provision_vars.yml

@@ -1,0 +1,13 @@
+---
+aws_region: REQUIRED
+ec2_name: REQUIRED
+route53_record_zone: REQUIRED
+root_volume_size: 80 #Leave blank for 80 Gb
+windows_admin_password: "" #Leave blank to use defaults
+route53_record_name: "" #Leave blank to name as instanceName.hostedZone
+ssh_access_from: "" #Leave blank to allow from everywhere
+rdp_access_from: "" #Leave blank to allow from everywhere
+aws_windows_ami: "" #Leave blank to use the windows server 2025 core
+aws_vpc_id: "" #Leave blank to use region's default
+aws_subnet_id: "" #Leave blank to use vpc's default
+aws_instance_type: "" #Leave blank to use t3.large

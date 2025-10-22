@@ -18,7 +18,7 @@
   when: provision_ec2_configure_route53 | bool
   vars:
     provision_route53_required:
-      - provision_ec2_route53_zone_id
+      - provision_ec2_route53_zone
   ansible.builtin.assert:
     that:
       - vars[item] is defined

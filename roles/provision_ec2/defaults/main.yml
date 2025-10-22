@@ -5,9 +5,9 @@ provision_ec2_aws_vpc_id: "{{ aws_vpc_id }}"
 provision_ec2_aws_subnet_id: "{{ aws_subnet_id }}"
 
 # EC2 instance configuration
-provision_ec2_name_tag: ""
+provision_ec2_name_tag: "{{ ec2_name }}"
 provision_ec2_instance_type: "{{ aws_instance_type | default('t3.large') }}"
-provision_ec2_image_id: "{{ aws_windows_ami | default('ami-05b00365623a86bd3') }}"
+provision_ec2_image_id: "{{ aws_windows_ami | default('ami-058cdf62ba6d6cd64') }}"
 provision_ec2_security_group_name: ""
 provision_ec2_assign_public_ip: true
 
@@ -17,7 +17,7 @@ provision_ec2_project: "ansible-automation"
 
 # Volume configuration
 provision_ec2_root_volume_type: gp3
-provision_ec2_root_volume_size: 50
+provision_ec2_root_volume_size: "{{ (root_volume_size | default(80)) | int }}"
 provision_ec2_root_volume_encrypted: true
 provision_ec2_delete_on_termination: false
 
@@ -28,12 +28,12 @@ provision_ec2_ssh_key_bits: 4096
 
 # Windows account configuration
 provision_ec2_windows_admin_user: "Administrator"
-provision_ec2_windows_admin_password: "{{ lookup('env', 'provision_ec2_windows_admin_password') | default('AdminPass2024!', true) }}"
+provision_ec2_windows_admin_password: "{{ windows_admin_password | default('') | trim | default('AdminPass2024!') }}"
 
 # Route53 configuration
 provision_ec2_configure_route53: false
-provision_ec2_route53_zone_id: ""
-provision_ec2_route53_record_name: ""
+provision_ec2_route53_zone: "{{ route53_record_zone }}"
+provision_ec2_route53_record_name: "{{ route53_record_name | default('') | trim | default(ec2_name + '.' + route53_record_zone) }}"
 provision_ec2_route53_record_type: "A"
 provision_ec2_route53_record_ttl: 300
 provision_ec2_route53_wait_for_propagation: true
@@ -50,9 +50,9 @@ provision_ec2_instance_wait_delay: 15
 provision_ec2_security_group_rules:
   - proto: tcp
     ports: [22]
-    cidr_ip: "0.0.0.0/0"
+    cidr_ip: "{{ ssh_access_from | default('') | trim | default('0.0.0.0/0') }}"
     rule_desc: "SSH access"
   - proto: tcp
     ports: [3389]
-    cidr_ip: "0.0.0.0/0"
+    cidr_ip: "{{ rdp_access_from | default('') | trim | default('0.0.0.0/0') }}"
     rule_desc: "RDP Access"

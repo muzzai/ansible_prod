@@ -46,7 +46,7 @@ argument_specs:
         type: bool
         required: false
         description: When true, create/update a Route53 record for the instance.
-      provision_ec2_route53_zone_id:
+      provision_ec2_route53_zone:
         type: str
         required: false
         description: Hosted zone ID used for Route53 record creation.
