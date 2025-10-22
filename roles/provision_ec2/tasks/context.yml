@@ -33,7 +33,7 @@
     provision_ec2_key_name: "{{ (provision_keypair_name_clean | default('', true) | string | trim)
                      or (provision_ec2_name_token ~ '-key') }}"
     provision_ec2_security_group_name: "{{ (provision_security_group_name_clean | default('', true) | string | trim)
-                                or (provision_ec2_name_token ~ '-sg') }}"
+                                or (provision_ec2_name_token ~ '-secgroup') }}"
     provision_ec2_root_volume_name: "vol-{{ provision_ec2_name_token }}"
 
 - name: Derive private key file paths
