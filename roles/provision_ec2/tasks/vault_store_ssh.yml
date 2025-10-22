@@ -11,7 +11,7 @@
           private_ip: "{{ provision_ec2_instance_info.private_ip | default('') }}"
           public_ip: "{{ provision_ec2_instance_info.public_ip | default('') }}"
           key_name: "{{ provision_ec2_instance_info.key_name | default('') }}"
-          security_group_id: "{{ provision_ec2_security_group_id | default('') }}"
+          security_group_id: "{{ provision_ec2_security_group_name | default('') }}"
           security_group_name: "{{ provision_ec2_security_group_name | default('') }}"
           vpc_id: "{{ provision_ec2_aws_vpc_id | default('') }}"
           private_key: "{{ provision_ec2_keypair_info.private_key | default('') }}"
