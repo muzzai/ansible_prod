@@ -5,7 +5,7 @@
     port: 22
     delay: 15
     timeout: 300
-  delegate_to: "{{ provision_control_host }}"
+  delegate_to: localhost
 
 - name: Wait for user data script to complete (trying with cmd)
   vars:
@@ -22,11 +22,11 @@
   until: configure_windows_provision_ec2_user_data_status_cmd.stat.exists
   retries: 10
   delay: 15
-  delegate_to: "{{ configure_windows_provision_ec2_instance_info.public_ip }}"
   ignore_errors: true
 
 - name: Wait for user data script to complete (falling back to powershell)
   vars:
+    ansible_connection: ssh
     ansible_shell_type: powershell
     ansible_ssh_common_args: >-
       -o UserKnownHostsFile=/dev/null
@@ -39,5 +39,4 @@
   until: configure_windows_provision_ec2_user_data_status_ps.stat.exists
   retries: 10
   delay: 15
-  delegate_to: "{{ configure_windows_provision_ec2_instance_info.public_ip }}"
   when: configure_windows_provision_ec2_user_data_status_cmd is failed

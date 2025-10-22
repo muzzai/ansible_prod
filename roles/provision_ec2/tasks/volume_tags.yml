@@ -13,5 +13,5 @@
       CreatedAt: "{{ ansible_date_time.iso8601 }}"
       Project: "{{ provision_ec2_project }}"
       Environment: "{{ provision_ec2_environment }}"
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true

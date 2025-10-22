@@ -6,7 +6,6 @@
       isDefault: true
   register: provision_ec2_default_vpc
   when: (provision_ec2_aws_vpc_id | default('', true) | string | trim | length) == 0
-  delegate_to: "{{ provision_control_host }}"
   run_once: true
 
 - name: Use discovered VPC ID
@@ -24,7 +23,6 @@
       default-for-az: true
   register: provision_ec2_default_subnets
   when: (provision_ec2_aws_subnet_id | default('', true) | string | trim | length) == 0
-  delegate_to: "{{ provision_control_host }}"
   run_once: true
 
 - name: Use discovered subnet ID

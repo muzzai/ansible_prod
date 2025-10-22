@@ -45,8 +45,6 @@
         content: "{{ provision_ec2_host_details.data.data.private_key }}"
         dest: "/tmp/{{ provision_ec2_name_tag }}_key"
         mode: '600'
-        suffix: .pem
-      delegate_to: "{{ provision_control_host }}"
 
     - name: Add host
       ansible.builtin.add_host:

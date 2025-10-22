@@ -87,7 +87,7 @@ Set `vault_addr`/`vault_url`, `vault_role_id`, and `vault_secret_id` to enable V
 ```yaml
 provision_set_custom_facts: true        # Push Ansible facts to the instance
 provision_ec2_configure_route53: false      # Skip DNS registration by default
-provision_control_host: localhost       # Host performing AWS/Vault/SSH key actions
+provision_ec2_provision_control_host: localhost       # Host performing AWS/Vault/SSH key actions
 provision_eip_allocation_id: ""         # Reuse an existing Elastic IP allocation (optional)
 
 

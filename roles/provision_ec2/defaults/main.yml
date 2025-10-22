@@ -1,5 +1,5 @@
 ---
-provision_ec2_provision_control_host: localhost
+provision_ec2_provision_ec2_provision_control_host: localhost
 provision_ec2_aws_region: "{{ aws_region }}"
 provision_ec2_aws_vpc_id: "{{ aws_vpc_id }}"
 provision_ec2_aws_subnet_id: "{{ aws_subnet_id }}"

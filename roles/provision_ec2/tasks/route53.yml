@@ -12,7 +12,7 @@
     wait: true
     wait_timeout: 300
   register: provision_ec2_route53_result
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 - name: Wait for DNS propagation
@@ -23,7 +23,7 @@
   until: provision_ec2_dns_propagation_check.rc == 0
   changed_when: false
   ignore_errors: true
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
   when: provision_ec2_route53_wait_for_propagation | bool
 
@@ -46,7 +46,7 @@
       FQDN: "{{ route53_effective_record_name }}"
       DNSConfigured: "{{ (provision_ec2_dns_check.rc == 0) | ternary('true', 'pending') }}"
       DNSCreatedAt: "{{ ansible_date_time.iso8601 }}"
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 - name: Show Route53 record details

@@ -11,7 +11,7 @@
     path: "{{ provision_ec2_provision_private_key_path_expanded | dirname }}"
     state: directory
     mode: '0700'
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 - name: Generate EC2 key pair
@@ -23,7 +23,7 @@
       -f "{{ provision_ec2_provision_private_key_path_expanded }}" \
       -N "" \
       -C "ansible-generated-{{ provision_ec2_key_name }}"
-  delegate_to: "{{ provision_control_host }}"
+
   changed_when: false
   run_once: true
 
@@ -31,14 +31,14 @@
   ansible.builtin.slurp:
     src: "{{ provision_ec2_provision_public_key_path_expanded }}"
   register: provision_ec2_public_key_content
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 - name: Read private key content for Vault storage
   ansible.builtin.slurp:
     src: "{{ provision_ec2_provision_private_key_path_expanded }}"
   register: provision_ec2_private_key_content
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 - name: Assemble key pair facts
@@ -50,7 +50,7 @@
       private_key: "{{ provision_ec2_private_key_content.content | b64decode if provision_ec2_private_key_content is defined else '' }}"
       key_type: "{{ provision_ec2_ssh_key_type }}"
       key_bits: "{{ provision_ec2_ssh_key_bits }}"
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 - name: Import key pair into AWS
@@ -67,7 +67,7 @@
       CreatedBy: "{{ ansible_user | default('ansible') }}"
       CreatedAt: "{{ ansible_date_time.iso8601 }}"
   register: provision_ec2_ec2_keypair_result
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 - name: Show key pair status

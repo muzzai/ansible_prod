@@ -6,7 +6,7 @@
     device_id: "{{ provision_ec2_instance_info.instance_id }}"
     allow_reassociation: true
   register: provision_ec2_provision_eip_result
-  delegate_to: "{{ provision_control_host }}"
+
   run_once: true
 
 
