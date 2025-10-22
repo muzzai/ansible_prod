@@ -9,7 +9,8 @@
     instance_type: "{{ provision_ec2_instance_type }}"
     key_name: "{{ provision_ec2_key_name }}"
     vpc_subnet_id: "{{ provision_ec2_subnet_id }}"
-    security_group: "{{ provision_ec2_security_group_id }}"
+    security_groups:
+      - "{{ provision_ec2_security_group_id }}"
     network:
       assign_public_ip: "{{ provision_ec2_assign_public_ip | bool }}"
     user_data: "{{ lookup('template', 'user_data.ps1.j2') }}"
