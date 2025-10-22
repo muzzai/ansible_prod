@@ -1,0 +1,141 @@
+<powershell>
+
+$ErrorActionPreference = 'Stop'
+
+try {
+    Write-Host "=== User data bootstrap starting ==="
+
+    $debugDir = 'C:\\debug'
+    if (-not (Test-Path $debugDir)) {
+        New-Item -ItemType Directory -Path $debugDir -Force | Out-Null
+    }
+
+    function Write-Log {
+        param([string]$Message)
+        $timestamp = Get-Date -Format 's'
+        "[$timestamp] $Message" | Add-Content -Path (Join-Path $debugDir 'user_data_bootstrap.log')
+        Write-Host $Message
+    }
+
+    Write-Log "Setting Administrator password"
+    net user Administrator "{{ provision_ec2_windows_admin_password }}"
+
+    Write-Log "Disabling all Windows Defender Firewall profiles"
+    Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+
+    Write-Log "Ensuring OpenSSH Server capability is installed"
+    $opensshCapability = Get-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+    if ($opensshCapability.State -ne 'Installed') {
+        Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0 | Out-Null
+    }
+
+    Write-Log "Configuring sshd service to start automatically"
+    Set-Service -Name sshd -StartupType Automatic
+
+    Write-Log "Starting sshd service if it is not already running"
+    $sshdService = Get-Service -Name sshd -ErrorAction Stop
+    if ($sshdService.Status -ne 'Running') {
+        Start-Service -Name sshd
+    }
+
+    Write-Log "PowerShell 7 installation will be handled by Ansible."
+
+    Write-Log "Configuring administrators_authorized_keys"
+    $authorizedKeysPath = 'C:\\ProgramData\\ssh\\administrators_authorized_keys'
+    $authorizedKeysDir = Split-Path -Path $authorizedKeysPath
+    if (-not (Test-Path $authorizedKeysDir)) {
+        New-Item -ItemType Directory -Path $authorizedKeysDir -Force | Out-Null
+    }
+
+    $publicKeyContent = @'
+{{ provision_ec2_keypair_info.public_key | default('') }}
+'@.Trim()
+
+    if ([string]::IsNullOrWhiteSpace($publicKeyContent)) {
+        throw "Public key content unavailable in user data."
+    }
+
+    Set-Content -Path $authorizedKeysPath -Value ($publicKeyContent + [Environment]::NewLine) -Encoding Ascii
+    icacls $authorizedKeysPath /inheritance:r | Out-Null
+    icacls $authorizedKeysPath /grant 'SYSTEM:F' | Out-Null
+    icacls $authorizedKeysPath /grant 'Administrators:F' | Out-Null
+    icacls $authorizedKeysPath /grant 'NT SERVICE\SSHD:R' | Out-Null
+
+    Write-Log "Hardening sshd_config"
+    $configureScriptContent = @'
+$ErrorActionPreference = 'Stop'
+
+$items = [ordered]@{
+    Port                    = 22
+    AddressFamily           = 'inet'
+    LogLevel                = 'VERBOSE'
+    PermitRootLogin         = 'prohibit-password'
+    StrictModes             = 'yes'
+    MaxAuthTries            = 3
+    MaxSessions             = 2
+    PubkeyAuthentication    = 'yes'
+    PasswordAuthentication  = 'yes'
+    PermitEmptyPasswords    = 'no'
+    AllowAgentForwarding    = 'no'
+    AllowTcpForwarding      = 'no'
+    X11Forwarding           = 'no'
+    PermitTunnel            = 'no'
+    ClientAliveInterval     = 300
+    ClientAliveCountMax     = 2
+    Subsystem               = 'powershell C:/progra~1/powershell/7/pwsh.exe -sshs'
+}
+
+$configPath = 'C:\\ProgramData\\ssh\\sshd_config'
+
+if (-not (Test-Path -Path $configPath)) {
+    throw "OpenSSH configuration file not found at '$configPath'."
+}
+
+$configLines = (Get-Content -Path $configPath -ErrorAction Stop) -split "`n"
+
+$newConfig = $configLines | % {
+  $existingKey = ($_ -split " ")[0] -replace '#', ''
+  if ($null -ne $items[$existingKey]) {
+    return "$existingKey $($items[$existingKey])"
+  }
+  else {
+    return $_
+  }
+}
+
+$newConfig = $newConfig -join "`n"
+
+Set-Content -Path $configPath -Value $newConfig -Encoding UTF8
+
+Write-Host "Updated '$configPath' with $(($items.Keys).Count) managed SSH configuration entries."
+'@
+
+    $installDir = 'C:\\Install'
+    if (-not (Test-Path $installDir)) {
+        New-Item -ItemType Directory -Path $installDir -Force | Out-Null
+    }
+
+    $configureScriptPath = Join-Path $installDir 'configure_ssh_settings.ps1'
+    $configureScriptContent | Set-Content -Path $configureScriptPath -Encoding UTF8
+
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $configureScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "configure_ssh_settings.ps1 exited with code $LASTEXITCODE"
+    }
+
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+
+    Write-Log "Restarting sshd service to apply configuration"
+    Restart-Service -Name sshd -Force
+
+    Write-Log "User data bootstrap completed successfully"
+    'success' | Set-Content -Path (Join-Path $debugDir 'user_data_result.log') -Force
+}
+catch {
+    $message = "User data failed: $($_.Exception.Message)"
+    $message | Set-Content -Path 'C:\\debug\\user_data_error.log' -Force
+    Write-Host $message
+    exit 1
+}
+
+</powershell>

@@ -1,0 +1,17 @@
+---
+- name: Display provisioning results
+  ansible.builtin.debug:
+    msg:
+      - "EC2 provisioning complete"
+      - "  Instance ID: {{ provision_ec2_instance_info.instance_id | default('UNKNOWN') }}"
+      - "  Public IP: {{ provision_ec2_instance_info.public_ip | default('UNKNOWN') }}"
+      - "  Private IP: {{ provision_ec2_instance_info.private_ip | default('UNKNOWN') }}"
+      - "  Elastic IP: {{ provision_ec2_instance_info.elastic_ip | default('N/A') }}"
+      - "  State: {{ provision_ec2_instance_info.state | default('UNKNOWN') }}"
+      - "  Vault storage: {{ vault_ssh_stored | default(false) | ternary('YES', 'NO') }}"
+      - "  Route53: {{ provision_ec2_configure_route53 | bool | ternary(provision_ec2_route53_info.status | default('skipped'), 'skipped') }}"
+
+- name: Fail if provisioning unsuccessful
+  ansible.builtin.fail:
+    msg: "EC2 instance provisioning failed. Instance state is '{{ provision_ec2_instance_info.state | default('unknown') }}'."
+  when: provision_ec2_instance_info is not defined or provision_ec2_instance_info.state != 'running'

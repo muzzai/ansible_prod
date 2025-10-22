@@ -1,0 +1,84 @@
+---
+# Launch EC2 instance with specified image, type, storage, and bootstrap configuration
+
+- name: Launch EC2 instance
+  amazon.aws.ec2_instance:
+    name: "{{ provision_ec2_effective_name }}"
+    region: "{{ provision_ec2_aws_region }}"
+    image_id: "{{ provision_ec2_image_id }}"
+    instance_type: "{{ provision_ec2_instance_type }}"
+    key_name: "{{ provision_ec2_key_name }}"
+    vpc_subnet_id: "{{ provision_ec2_subnet_id }}"
+    security_group: "{{ provision_ec2_security_group_id }}"
+    network:
+      assign_public_ip: "{{ provision_ec2_assign_public_ip | bool }}"
+    user_data: "{{ lookup('template', 'user_data.ps1.j2') }}"
+    wait: true
+    wait_timeout: "{{ provision_ec2_wait_timeout }}"
+    volumes:
+      - device_name: /dev/sda1
+        ebs:
+          volume_type: "{{ provision_ec2_root_volume_type }}"
+          volume_size: "{{ provision_ec2_root_volume_size | int }}"
+          delete_on_termination: "{{ provision_ec2_delete_on_termination | bool }}"
+          encrypted: "{{ provision_ec2_root_volume_encrypted | bool }}"
+    tags:
+      Name: "{{ provision_ec2_effective_name }}"
+      Environment: "{{ provision_ec2_environment }}"
+      Project: "{{ provision_ec2_project }}"
+      ManagedBy: ansible
+      CreatedAt: "{{ ansible_date_time.iso8601 }}"
+  register: provision_ec2_ec2_instance_result
+  run_once: true
+
+- name: Capture initial instance facts
+  ansible.builtin.set_fact:
+    provision_ec2_provision_ec2_instance_info:
+      instance_id: "{{ provision_ec2_ec2_instance_result.instances[0].instance_id }}"
+      instance_type: "{{ provision_ec2_ec2_instance_result.instances[0].instance_type }}"
+      image_id: "{{ provision_ec2_ec2_instance_result.instances[0].image_id }}"
+      key_name: "{{ provision_ec2_ec2_instance_result.instances[0].key_name }}"
+      public_ip: "{{ provision_ec2_ec2_instance_result.instances[0].public_ip_address | default('') }}"
+      private_ip: "{{ provision_ec2_ec2_instance_result.instances[0].private_ip_address | default('') }}"
+      state: "{{ provision_ec2_ec2_instance_result.instances[0].state.name }}"
+      availability_zone: "{{ provision_ec2_ec2_instance_result.instances[0].placement.availability_zone }}"
+      vpc_id: "{{ provision_ec2_ec2_instance_result.instances[0].vpc_id }}"
+      subnet_id: "{{ provision_ec2_ec2_instance_result.instances[0].subnet_id }}"
+      root_volume_id: "{{ provision_ec2_ec2_instance_result.instances[0].block_device_mappings[0].ebs.volume_id | default('') }}"
+
+- name: Wait for instance to reach running state
+  amazon.aws.ec2_instance_info:
+    region: "{{ provision_ec2_aws_region }}"
+    instance_ids:
+      - "{{ provision_ec2_instance_info.instance_id }}"
+  register: provision_ec2_ec2_state_poll
+  until: provision_ec2_ec2_state_poll.instances and provision_ec2_ec2_state_poll.instances[0].state.name == 'running'
+  retries: "{{ provision_ec2_instance_wait_retries }}"
+  delay: "{{ provision_ec2_instance_wait_delay }}"
+  run_once: true
+
+- name: Refresh instance facts after wait
+  ansible.builtin.set_fact:
+    provision_ec2_provision_ec2_instance_info:
+      instance_id: "{{ provision_ec2_ec2_state_poll.instances[0].instance_id }}"
+      instance_type: "{{ provision_ec2_ec2_state_poll.instances[0].instance_type }}"
+      image_id: "{{ provision_ec2_ec2_state_poll.instances[0].image_id }}"
+      key_name: "{{ provision_ec2_ec2_state_poll.instances[0].key_name }}"
+      public_ip: "{{ provision_ec2_ec2_state_poll.instances[0].public_ip_address | default('') }}"
+      private_ip: "{{ provision_ec2_ec2_state_poll.instances[0].private_ip_address | default('') }}"
+      state: "{{ provision_ec2_ec2_state_poll.instances[0].state.name }}"
+      availability_zone: "{{ provision_ec2_ec2_state_poll.instances[0].placement.availability_zone }}"
+      vpc_id: "{{ provision_ec2_ec2_state_poll.instances[0].vpc_id }}"
+      subnet_id: "{{ provision_ec2_ec2_state_poll.instances[0].subnet_id }}"
+      root_volume_id: >
+       "{{ provision_ec2_ec2_state_poll.instances[0].block_device_mappings[0].ebs.volume_id
+       | default(provision_ec2_instance_info.root_volume_id
+       | default('')) }}"
+
+- name: Show instance summary
+  ansible.builtin.debug:
+    msg:
+      - "Instance provisioned: {{ provision_ec2_instance_info.instance_id }}"
+      - "Public IP: {{ provision_ec2_instance_info.public_ip }}"
+      - "Private IP: {{ provision_ec2_instance_info.private_ip }}"
+      - "State: {{ provision_ec2_instance_info.state }}"

@@ -1,0 +1,14 @@
+---
+- name: Install SQL Server on Windows
+  hosts: aws_ec2
+  gather_facts: false
+
+  vars:
+    sql_version: "{{ sql_server_version | default('2022') }}"
+    sql_edition: "{{ sql_server_edition | default('Express') }}"
+    sql_port: "{{ sql_server_port | default(1433) }}"
+
+  roles:
+    - role: trippsc2.mssql.install
+      vars:
+        mssql_port: 51967

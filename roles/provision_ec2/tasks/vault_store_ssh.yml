@@ -1,0 +1,64 @@
+---
+- name: Store SSH secret in Vault
+  block:
+    - name: Build Vault payload for SSH secret
+      ansible.builtin.set_fact:
+        provision_ec2_vault_payload:
+          instance_id: "{{ provision_ec2_instance_info.instance_id | default('') }}"
+          instance_type: "{{ provision_ec2_instance_info.instance_type | default('') }}"
+          image_id: "{{ provision_ec2_instance_info.image_id | default('') }}"
+          region: "{{ provision_ec2_instance_info.availability_zone | default(provision_ec2_aws_region) }}"
+          private_ip: "{{ provision_ec2_instance_info.private_ip | default('') }}"
+          public_ip: "{{ provision_ec2_instance_info.public_ip | default('') }}"
+          key_name: "{{ provision_ec2_instance_info.key_name | default('') }}"
+          security_group_id: "{{ provision_ec2_security_group_id | default('') }}"
+          security_group_name: "{{ provision_ec2_security_group_name | default('') }}"
+          vpc_id: "{{ provision_ec2_aws_vpc_id | default('') }}"
+          private_key: "{{ provision_ec2_keypair_info.private_key | default('') }}"
+          admin_username: "{{ provision_ec2_windows_admin_user }}"
+          admin_password: "{{ provision_ec2_windows_admin_password }}"
+
+    - name: Store SSH secret
+      ansible.builtin.include_role:
+        name: manage_secret
+      vars:
+        manage_secret_action: write
+        manage_secret_payload: "{{ provision_ec2_vault_payload }}"
+        manage_secret_path: "windows/{{ provision_ec2_name_tag }}"
+      register: provision_ec2_vault_write_result
+
+    - name: Debug write result
+      ansible.builtin.debug:
+        var: provision_ec2_vault_write_result
+      when: "provision_ec2_vault_write_result is defined"
+
+    - name: Verify stored SSH secret
+      ansible.builtin.include_role:
+        name: manage_secret
+      vars:
+        manage_secret_action: get
+        manage_secret_path: "windows/{{ provision_ec2_name_tag }}"
+      register: provision_ec2_host_details
+
+    - name: Write temporary private key file
+      ansible.builtin.copy:
+        content: "{{ provision_ec2_host_details.data.data.private_key }}"
+        dest: "/tmp/{{ provision_ec2_name_tag }}_key"
+        mode: '600'
+        suffix: .pem
+      delegate_to: "{{ provision_control_host }}"
+
+    - name: Add host
+      ansible.builtin.add_host:
+        name: "{{ provision_ec2_name_tag }}"
+        ansible_host: "{{ provision_ec2_host_details.data.data.public_ip }}"
+        ansible_user: "{{ provision_ec2_host_details.data.data.admin_username }}"
+        ansible_connection: ssh
+        ansible_ssh_private_key_file: "/tmp/{{ provision_ec2_name_tag }}_key"
+        ansible_ssh_common_args: >-
+          -o UserKnownHostsFile=/dev/null
+          -o StrictHostKeyChecking=no
+          -o PasswordAuthentication=no
+          -o PreferredAuthentications=publickey
+          -o ControlMaster=no -o ControlPersist=no
+        groups: "provisioned_instance"

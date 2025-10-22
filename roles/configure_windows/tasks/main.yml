@@ -1,0 +1,7 @@
+- name: Wait for user data script to complete
+  ansible.builtin.import_tasks: wait_for_userdata.yml
+  tags: ['configure', 'wait']
+
+- name: Install PowerShell 7
+  ansible.builtin.import_tasks: install_powershell7.yml
+  tags: ['configure', 'software']

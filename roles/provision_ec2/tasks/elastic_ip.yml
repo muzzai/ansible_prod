@@ -1,0 +1,44 @@
+---
+# Allocate or associate an Elastic IP with the provisioned instance
+
+- name: Associate provided Elastic IP allocation
+  amazon.aws.ec2_eip:  # noqa args[module]
+    state: present
+    region: "{{ provision_ec2_aws_region }}"
+    allocation_id: "{{ provision_eip_allocation_id }}"
+    device_id: "{{ provision_ec2_instance_info.instance_id }}"
+    allow_reassociation: true
+  register: provision_ec2_provision_eip_result
+  delegate_to: "{{ provision_control_host }}"
+  run_once: true
+  when: (provision_eip_allocation_id | default('', true) | string | trim | length) > 0
+
+- name: Allocate and associate new Elastic IP
+  amazon.aws.ec2_eip:  # noqa args[module]
+    state: present
+    region: "{{ provision_ec2_aws_region }}"
+    device_id: "{{ provision_ec2_instance_info.instance_id }}"
+    allow_reassociation: true
+  register: provision_ec2_provision_eip_result
+  delegate_to: "{{ provision_control_host }}"
+  run_once: true
+  when: (provision_eip_allocation_id | default('', true) | string | trim | length) == 0
+
+- name: Update instance facts with Elastic IP details
+  ansible.builtin.set_fact:
+    provision_ec2_instance_info: "{{ provision_ec2_instance_info | combine(ip_details, recursive=True) }}"
+  vars:
+    ip_details:
+      public_ip: "{{ provision_ec2_provision_eip_result.public_ip | default(provision_ec2_instance_info.public_ip) }}"
+      elastic_ip: "{{ provision_ec2_provision_eip_result.public_ip | default(provision_ec2_instance_info.public_ip) }}"
+      elastic_ip_allocation_id: >
+       "{{ provision_ec2_provision_eip_result.allocation_id
+       | default(provision_ec2_provision_eip_result.eip.allocation_id
+       | default('')) }}"
+
+- name: Show Elastic IP assignment
+  ansible.builtin.debug:
+    msg:
+      - "Elastic IP associated with instance {{ provision_ec2_instance_info.instance_id }}"
+      - "  Public IP: {{ provision_ec2_instance_info.public_ip }}"
+      - "  Allocation ID: {{ provision_ec2_instance_info.elastic_ip_allocation_id | default('n/a') }}"

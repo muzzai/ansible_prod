@@ -1,0 +1,43 @@
+---
+- name: Wait for SSH port to be open
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: 22
+    delay: 15
+    timeout: 300
+  delegate_to: "{{ provision_control_host }}"
+
+- name: Wait for user data script to complete (trying with cmd)
+  vars:
+    ansible_connection: ssh
+    ansible_shell_type: cmd
+    ansible_ssh_common_args: >-
+      -o UserKnownHostsFile=/dev/null
+      -o StrictHostKeyChecking=no
+      -o PasswordAuthentication=no
+      -o PreferredAuthentications=publickey
+  ansible.windows.win_stat:
+    path: C:\debug\user_data_result.log
+  register: configure_windows_provision_ec2_user_data_status_cmd
+  until: configure_windows_provision_ec2_user_data_status_cmd.stat.exists
+  retries: 10
+  delay: 15
+  delegate_to: "{{ configure_windows_provision_ec2_instance_info.public_ip }}"
+  ignore_errors: true
+
+- name: Wait for user data script to complete (falling back to powershell)
+  vars:
+    ansible_shell_type: powershell
+    ansible_ssh_common_args: >-
+      -o UserKnownHostsFile=/dev/null
+      -o StrictHostKeyChecking=no
+      -o PasswordAuthentication=no
+      -o PreferredAuthentications=publickey
+  ansible.windows.win_stat:
+    path: C:\debug\user_data_result.log
+  register: configure_windows_provision_ec2_user_data_status_ps
+  until: configure_windows_provision_ec2_user_data_status_ps.stat.exists
+  retries: 10
+  delay: 15
+  delegate_to: "{{ configure_windows_provision_ec2_instance_info.public_ip }}"
+  when: configure_windows_provision_ec2_user_data_status_cmd is failed

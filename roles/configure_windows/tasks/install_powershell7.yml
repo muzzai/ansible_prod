@@ -1,0 +1,43 @@
+- name: Install PowerShell 7 and update SSH shell
+  vars:
+    ansible_shell_type: powershell
+    ansible_shell_executable: powershell.exe   # use Windows PowerShell during this block
+    ansible_remote_tmp: 'C:\Windows\Temp\ansible'
+
+  block:
+    - name: Ensure ansible_remote_tmp exists (before any win_* modules)
+      ansible.builtin.raw: |
+        $p = 'C:\Windows\Temp\ansible'
+        if (-not (Test-Path $p)) { New-Item -ItemType Directory -Path $p -Force | Out-Null }
+      changed_when: false
+
+    - name: Create Temp directory if it does not exist
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: directory
+
+    - name: Download PowerShell 7 installer
+      ansible.windows.win_get_url:
+        url: "https://github.com/PowerShell/PowerShell/releases/download/v7.4.3/PowerShell-7.4.3-win-x64.msi"
+        dest: C:\Temp\PowerShell-7.4.3-win-x64.msi
+
+    - name: Install PowerShell 7
+      ansible.windows.win_package:
+        path: C:\Temp\PowerShell-7.4.3-win-x64.msi
+        state: present
+
+    - name: Update DefaultShell to PowerShell 7
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\OpenSSH
+        name: DefaultShell
+        data: 'C:\Program Files\PowerShell\7\pwsh.exe'
+        type: string
+
+    - name: Clean up PowerShell installer
+      ansible.windows.win_file:
+        path: C:\Temp\PowerShell-7.4.3-win-x64.msi
+        state: absent
+
+    # Optional: reconnect so the new DefaultShell (pwsh) is used next
+    - name: Reset SSH connection to pick up new default shell
+      ansible.builtin.meta: reset_connection

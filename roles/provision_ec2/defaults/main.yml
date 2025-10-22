@@ -1,0 +1,58 @@
+---
+provision_ec2_provision_control_host: localhost
+provision_ec2_aws_region: "{{ aws_region }}"
+provision_ec2_aws_vpc_id: "{{ aws_vpc_id }}"
+provision_ec2_aws_subnet_id: "{{ aws_subnet_id }}"
+
+# EC2 instance configuration
+provision_ec2_name_tag: ""
+provision_ec2_instance_type: "{{ aws_instance_type | default('t3.large') }}"
+provision_ec2_image_id: "{{ aws_windows_ami | default('ami-05b00365623a86bd3') }}"
+provision_ec2_security_group_name: ""
+provision_ec2_assign_public_ip: true
+
+# Instance naming and tagging
+provision_ec2_environment: "production"
+provision_ec2_project: "ansible-automation"
+
+# Volume configuration
+provision_ec2_root_volume_type: gp3
+provision_ec2_root_volume_size: 50
+provision_ec2_root_volume_encrypted: true
+provision_ec2_delete_on_termination: false
+
+# SSH key management
+provision_ec2_keypair_name: ""
+provision_ec2_ssh_key_type: "rsa"
+provision_ec2_ssh_key_bits: 4096
+
+# Windows account configuration
+provision_ec2_windows_admin_user: "Administrator"
+provision_ec2_windows_admin_password: "{{ lookup('env', 'provision_ec2_windows_admin_password') | default('AdminPass2024!', true) }}"
+
+# Route53 configuration
+provision_ec2_configure_route53: false
+provision_ec2_route53_zone_id: ""
+provision_ec2_route53_record_name: ""
+provision_ec2_route53_record_type: "A"
+provision_ec2_route53_record_ttl: 300
+provision_ec2_route53_wait_for_propagation: true
+provision_ec2_route53_provision_ec2_dns_check_retries: 10
+provision_ec2_route53_provision_ec2_dns_check_delay: 30
+
+
+# Wait configuration
+provision_ec2_wait_timeout: 600
+provision_ec2_instance_wait_retries: 20
+provision_ec2_instance_wait_delay: 15
+
+# Security group rules (SSH, RDP, SQL Server access)
+provision_ec2_security_group_rules:
+  - proto: tcp
+    ports: [22]
+    cidr_ip: "0.0.0.0/0"
+    rule_desc: "SSH access"
+  - proto: tcp
+    ports: [3389]
+    cidr_ip: "0.0.0.0/0"
+    rule_desc: "RDP Access"

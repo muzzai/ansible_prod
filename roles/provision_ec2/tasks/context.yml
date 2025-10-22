@@ -1,0 +1,45 @@
+---
+- name: Gather local facts for timestamp usage
+  ansible.builtin.setup:
+  when: ansible_date_time is not defined
+
+- name: Record effective instance name
+  ansible.builtin.set_fact:
+    provision_ec2_effective_name: "{{ provision_ec2_name_tag }}"
+
+- name: Build instance name slug
+  ansible.builtin.set_fact:
+    provision_ec2_name_slug: >-
+      {{ provision_ec2_effective_name
+         | regex_replace('[^A-Za-z0-9]+', '-')
+         | regex_replace('^-+|-+$', '')
+         | lower }}
+
+- name: Determine instance name token
+  ansible.builtin.set_fact:
+    provision_ec2_name_token: >-
+      {{ (provision_ec2_name_slug | default('', true) | string | trim)
+         or (provision_ec2_effective_name
+             | regex_replace('[^A-Za-z0-9]+', '-')
+             | regex_replace('^-+|-+$', '')
+             | lower
+             | default(provision_ec2_effective_name)) }}
+
+- name: Derive key, security group, and volume names
+  vars:
+    provision_keypair_name_clean: "{{ provision_ec2_keypair_name | default('', true) }}"
+    provision_security_group_name_clean: "{{ provision_ec2_security_group_name | default('', true) }}"
+  ansible.builtin.set_fact:
+    provision_ec2_key_name: "{{ (provision_keypair_name_clean | default('', true) | string | trim)
+                     or (provision_ec2_name_token ~ '-key') }}"
+    provision_ec2_security_group_name: "{{ (provision_security_group_name_clean | default('', true) | string | trim)
+                                or (provision_ec2_name_token ~ '-sg') }}"
+    provision_ec2_root_volume_name: "vol-{{ provision_ec2_name_token }}"
+
+- name: Derive private key file paths
+  ansible.builtin.set_fact:
+    provision_ec2_provision_private_key_path: "{{ '~/.ssh/' ~ provision_ec2_key_name ~ '.pem' }}"
+
+- name: Derive public key file paths
+  ansible.builtin.set_fact:
+    provision_ec2_provision_public_key_path: "{{ provision_ec2_provision_private_key_path ~ '.pub' }}"

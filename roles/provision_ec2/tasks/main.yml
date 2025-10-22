@@ -1,0 +1,44 @@
+---
+- name: Validate provisioning inputs
+  ansible.builtin.import_tasks: validate.yml
+  tags: ['provision', 'validation']
+
+- name: Build provisioning context
+  ansible.builtin.import_tasks: context.yml
+  tags: ['provision', 'context']
+
+- name: Discover AWS networking defaults
+  ansible.builtin.import_tasks: discover.yml
+  tags: ['provision', 'discovery']
+
+- name: Manage SSH key pair
+  ansible.builtin.import_tasks: keypair.yml
+  tags: ['provision', 'keypair']
+
+- name: Ensure security group exists
+  ansible.builtin.import_tasks: security_group.yml
+  tags: ['provision', 'security_group']
+
+- name: Launch and wait for EC2 instance
+  ansible.builtin.import_tasks: instance.yml
+  tags: ['provision', 'instance']
+
+- name: Manage Elastic IP association
+  ansible.builtin.import_tasks: elastic_ip.yml
+  tags: ['provision', 'network', 'elastic_ip']
+
+- name: Store SSH key material in Vault
+  ansible.builtin.import_tasks: vault_store_ssh.yml
+  tags: ['provision', 'vault']
+
+- name: Tag root EBS volume
+  ansible.builtin.import_tasks: volume_tags.yml
+  tags: ['provision', 'volumes']
+
+- name: Configure Route53 record
+  ansible.builtin.import_tasks: route53.yml
+  tags: ['provision', 'route53']
+
+- name: Display provisioning summary
+  ansible.builtin.import_tasks: summary.yml
+  tags: ['provision', 'results']

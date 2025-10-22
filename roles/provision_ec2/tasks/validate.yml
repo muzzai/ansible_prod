@@ -1,0 +1,27 @@
+---
+- name: Ensure required provisioning variables are defined
+  vars:
+    provision_required_vars:
+      - provision_ec2_aws_region
+      - provision_ec2_name_tag
+      - provision_ec2_instance_type
+      - provision_ec2_image_id
+      - provision_ec2_root_volume_size
+  ansible.builtin.assert:
+    that:
+      - vars[item] is defined
+      - (vars[item] | string | trim) | length > 0
+    fail_msg: "Required variable '{{ item }}' is missing or empty. Provide it via inventory, vars, or extra_vars."
+  loop: "{{ provision_required_vars }}"
+
+- name: Validate Route53 inputs when enabled
+  when: provision_ec2_configure_route53 | bool
+  vars:
+    provision_route53_required:
+      - provision_ec2_route53_zone_id
+  ansible.builtin.assert:
+    that:
+      - vars[item] is defined
+      - (vars[item] | string | trim) | length > 0
+    fail_msg: "Route53 provisioning requires '{{ item }}'."
+  loop: "{{ provision_route53_required }}"

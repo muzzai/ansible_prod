@@ -1,0 +1,52 @@
+---
+- name: Validate required parameters
+  ansible.builtin.assert:
+    that:
+      - manage_secret_action in ['write', 'get']
+    fail_msg: Action must be get or write
+
+- name: Create a temporary file for the CA certificate
+  ansible.builtin.tempfile:
+    state: file
+    suffix: .crt
+  register: manage_secret_temp_ca_cert
+  delegate_to: loacalhost
+  run_once: true
+
+- name: Write the CA certificate to the temporary file
+  ansible.builtin.copy:
+    content: "{{ manage_secret_vault_ca_cert_env_var }}"
+    dest: "{{ manage_secret_vault_ca_cert_path }}"
+    mode: "600"
+  delegate_to: loaclhost
+  run_once: true
+
+- name: Store SSH secret
+  community.hashi_vault.vault_kv2_write:
+    url: "{{ manage_secret_vault_addr }}"
+    auth_method: approle
+    role_id: "{{ manage_secret_vault_role_id }}"
+    secret_id: "{{ manage_secret_vault_secret_id }}"
+    path: "{{ manage_secret_path }}"
+    engine_mount_point: "{{ manage_secret_vault_kv_mount }}"
+    data: "{{ payload }}"
+    ca_cert: "{{ manage_secret_vault_ca_cert_path }}"
+    validate_certs: "{{ provision_vault_connection.validate_certs | bool }}"
+  when: manage_secret_action == 'write'
+  register: manage_secret_vault_write_result
+  delegate_to: "{{ provision_control_host }}"
+  run_once: true
+
+- name: Fetch SSH private key from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ manage_secret_vault_addr }}"
+    auth_method: approle
+    role_id: "{{ manage_secret_vault_role_id }}"
+    secret_id: "{{ manage_secret_vault_secret_id }}"
+    path: "{{ manage_secret_path }}"
+    engine_mount_point: "{{ manage_secret_vault_kv_mount }}"
+    ca_cert: "{{ manage_secret_vault_ca_cert_path }}"
+    validate_certs: "{{ provision_vault_connection.validate_certs | bool }}"
+  when: manage_secret_action == 'get'
+  register: manage_secret_data
+  delegate_to: "{{ provision_control_host }}"

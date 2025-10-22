@@ -1,0 +1,58 @@
+---
+# Create Route53 DNS A record for the EC2 instance
+
+- name: Create Route53 A record for instance
+  amazon.aws.route53:
+    state: present
+    hosted_zone_id: "{{ provision_ec2_route53_zone_id }}"
+    record: "{{ route53_effective_record_name }}"
+    type: "{{ provision_ec2_route53_record_type }}"
+    value: "{{ provision_ec2_instance_info.public_ip }}"
+    ttl: "{{ provision_ec2_route53_record_ttl }}"
+    wait: true
+    wait_timeout: 300
+  register: provision_ec2_route53_result
+  delegate_to: "{{ provision_control_host }}"
+  run_once: true
+
+- name: Wait for DNS propagation
+  ansible.builtin.command: "nslookup {{ route53_effective_record_name }}"
+  register: provision_ec2_dns_propagation_check
+  retries: "{{ provision_ec2_route53_provision_ec2_dns_check_retries }}"
+  delay: "{{ provision_ec2_route53_provision_ec2_dns_check_delay }}"
+  until: provision_ec2_dns_propagation_check.rc == 0
+  changed_when: false
+  ignore_errors: true
+  delegate_to: "{{ provision_control_host }}"
+  run_once: true
+  when: provision_ec2_route53_wait_for_propagation | bool
+
+- name: Store Route53 information
+  ansible.builtin.set_fact:
+    provision_ec2_route53_info:
+      record_name: "{{ route53_effective_record_name }}"
+      record_type: "{{ provision_ec2_route53_record_type }}"
+      record_value: "{{ provision_ec2_instance_info.public_ip }}"
+      ttl: "{{ provision_ec2_route53_record_ttl }}"
+      hosted_zone_id: "{{ provision_ec2_route53_zone_id }}"
+      status: "{{ 'created' if provision_ec2_route53_result.changed else 'exists' }}"
+      provision_ec2_dns_check: "{{ 'resolved' if provision_ec2_dns_check.rc == 0 else 'pending' }}"
+
+- name: Tag instance with DNS information
+  amazon.aws.ec2_tag:
+    region: "{{ provision_ec2_aws_region }}"
+    resource: "{{ provision_ec2_instance_info.instance_id }}"
+    tags:
+      FQDN: "{{ route53_effective_record_name }}"
+      DNSConfigured: "{{ (provision_ec2_dns_check.rc == 0) | ternary('true', 'pending') }}"
+      DNSCreatedAt: "{{ ansible_date_time.iso8601 }}"
+  delegate_to: "{{ provision_control_host }}"
+  run_once: true
+
+- name: Show Route53 record details
+  ansible.builtin.debug:
+    msg:
+      - "Route53 record {{ provision_ec2_route53_info.status }}"
+      - "  FQDN: {{ provision_ec2_route53_info.record_name }}"
+      - "  Value: {{ provision_ec2_route53_info.record_value }}"
+      - "  DNS check: {{ provision_ec2_route53_info.provision_ec2_dns_check | upper }}"
