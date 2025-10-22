@@ -13,7 +13,6 @@
       ManagedBy: ansible
       CreatedAt: "{{ ansible_date_time.iso8601 }}"
   register: provision_ec2_security_group_result
-
   run_once: true
   tags: ['provision', 'security_group']
 
@@ -21,6 +20,5 @@
   ansible.builtin.set_fact:
     provision_ec2_security_group_id: >
       "{{ provision_ec2_security_group_result.group_id | default(provision_ec2_security_group_result.security_group_id | default(omit)) }}"
-
   run_once: true
   tags: ['provision', 'security_group']
