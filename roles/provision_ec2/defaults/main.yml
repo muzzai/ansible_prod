@@ -7,7 +7,7 @@ provision_ec2_aws_subnet_id: "{{ aws_subnet_id }}"
 # EC2 instance configuration
 provision_ec2_name_tag: "{{ ec2_name }}"
 provision_ec2_instance_type: "{{ aws_instance_type | default('t3.large') }}"
-provision_ec2_image_id: "{{ aws_windows_ami | default('ami-058cdf62ba6d6cd64') }}"
+provision_ec2_image_id: "{{ aws_windows_ami | default('ami-058cdf62ba6d6cd64', true) }}"
 provision_ec2_security_group_name: ""
 provision_ec2_assign_public_ip: true
 
