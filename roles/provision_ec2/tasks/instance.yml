@@ -9,7 +9,7 @@
     instance_type: "{{ provision_ec2_instance_type }}"
     key_name: "{{ provision_ec2_key_name }}"
     vpc_subnet_id: "{{ provision_ec2_subnet_id }}"
-    security_group: "{{ provision_ec2_security_group_name }}"
+    security_group: "{{ provision_ec2_security_group_id }}"
     network:
       assign_public_ip: "{{ provision_ec2_assign_public_ip | bool }}"
     user_data: "{{ lookup('template', 'user_data.ps1.j2') }}"
@@ -33,7 +33,7 @@
 
 - name: Capture initial instance facts
   ansible.builtin.set_fact:
-    provision_ec2_provision_ec2_instance_info:
+    provision_ec2_instance_info:
       instance_id: "{{ provision_ec2_ec2_instance_result.instances[0].instance_id }}"
       instance_type: "{{ provision_ec2_ec2_instance_result.instances[0].instance_type }}"
       image_id: "{{ provision_ec2_ec2_instance_result.instances[0].image_id }}"
@@ -59,7 +59,7 @@
 
 - name: Refresh instance facts after wait
   ansible.builtin.set_fact:
-    provision_ec2_provision_ec2_instance_info:
+    provision_ec2_instance_info:
       instance_id: "{{ provision_ec2_ec2_state_poll.instances[0].instance_id }}"
       instance_type: "{{ provision_ec2_ec2_state_poll.instances[0].instance_type }}"
       image_id: "{{ provision_ec2_ec2_state_poll.instances[0].image_id }}"
