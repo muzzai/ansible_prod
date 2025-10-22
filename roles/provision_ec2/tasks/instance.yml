@@ -10,7 +10,7 @@
     key_name: "{{ provision_ec2_key_name }}"
     network_interfaces:
       - assign_public_ip: true
-        groups: "{{ provision_ec2_security_group_id }}"
+        groups: "{{ provision_ec2_security_group_name }}"
         subnet_id: "{{ provision_ec2_subnet_id }}"
     user_data: "{{ lookup('template', 'user_data.ps1.j2') }}"
     wait: true

@@ -19,7 +19,7 @@
 
 - name: Share security group details
   ansible.builtin.set_fact:
-    provision_ec2_security_group_id: >
-      "{{ provision_ec2_security_group_result.group_id }}"
+    provision_ec2_security_group_name: >
+      "{{ provision_ec2_security_group_result.group_name }}"
   run_once: true
   tags: ['provision', 'security_group']
