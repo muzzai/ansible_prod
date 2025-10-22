@@ -50,9 +50,9 @@ provision_ec2_instance_wait_delay: 15
 provision_ec2_security_group_rules:
   - proto: tcp
     ports: [22]
-    cidr_ip: "{{ ssh_access_from | default('') | trim | default('0.0.0.0/0') }}"
+    cidr_ip: "{{ (ssh_access_from | default('') | trim) | default('0.0.0.0/0', true) }}"
     rule_desc: "SSH access"
   - proto: tcp
     ports: [3389]
-    cidr_ip: "{{ rdp_access_from | default('') | trim | default('0.0.0.0/0') }}"
+    cidr_ip: "{{ (rdp_access_from | default('') | trim) | default('0.0.0.0/0', true) }}"
     rule_desc: "RDP Access"
