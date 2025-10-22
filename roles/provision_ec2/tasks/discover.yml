@@ -8,12 +8,20 @@
   when: (provision_ec2_aws_vpc_id | default('', true) | string | trim | length) == 0
   run_once: true
 
+- name: Dedug vpc
+  ansible.builtin.debug:
+    var: provision_ec2_default_vpc
+
 - name: Use discovered VPC ID
   ansible.builtin.set_fact:
     provision_ec2_aws_vpc_id: "{{ provision_ec2_default_vpc.vpcs[0].vpc_id }}"
   when:
     - (provision_ec2_aws_vpc_id | default('', true) | string | trim | length) == 0
     - provision_ec2_default_vpc.vpcs | default([]) | length > 0
+
+- name: Dedug vpc id
+  ansible.builtin.debug:
+    var: provision_ec2_aws_vpc_id
 
 - name: Discover default subnet when not provided
   amazon.aws.ec2_vpc_subnet_info:
@@ -24,6 +32,10 @@
   register: provision_ec2_default_subnets
   when: (provision_ec2_aws_subnet_id | default('', true) | string | trim | length) == 0
   run_once: true
+
+- name: Dedug default subnet
+  ansible.builtin.debug:
+    var: provision_ec2_default_subnets
 
 - name: Use discovered subnet ID
   ansible.builtin.set_fact:
