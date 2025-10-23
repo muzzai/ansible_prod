@@ -17,6 +17,11 @@
   run_once: true
   tags: ['provision', 'security_group']
 
+- name: Debug sg result
+  ansible.builtin.debug:
+    var: provision_ec2_security_group_result
+
+
 - name: Share security group details
   ansible.builtin.set_fact:
     provision_ec2_security_group_id: >
