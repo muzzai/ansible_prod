@@ -8,6 +8,7 @@
     image_id: "{{ provision_ec2_image_id }}"
     instance_type: "{{ provision_ec2_instance_type }}"
     key_name: "{{ provision_ec2_key_name }}"
+    vpc_subnet_id: "{{ provision_ec2_aws_vpc_id }}"
     network_interfaces:
       - device_index: 0
         assign_public_ip: true
