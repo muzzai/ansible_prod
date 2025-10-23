@@ -40,6 +40,7 @@
 - name: Use discovered subnet ID
   ansible.builtin.set_fact:
     provision_ec2_aws_subnet_id: "{{ provision_ec2_default_subnets.subnets[0].subnet_id }}"
+    provision_ec2_aws_availability_zone: "{{ provision_ec2_default_subnets.subnets[0].availability_zone }}"
   when:
     - (provision_ec2_aws_subnet_id | default('', true) | string | trim | length) == 0
     - provision_ec2_default_subnets.subnets | default([]) | length > 0
