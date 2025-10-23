@@ -32,6 +32,8 @@
 - name: Create an Elastic Network Interface (ENI)
   amazon.aws.ec2_eni:
     state: present
+    region: "{{ provision_ec2_aws_region }}"
+    name: "{{ provision_ec2_effective_name }}-eni"
     subnet_id: "{{ provision_ec2_subnet_id }}"
     description: "custom ENI"
     security_groups:
@@ -43,5 +45,3 @@
 - name: Debug sg result
   ansible.builtin.debug:
     var: provision_ec2_eni_result
-
-
