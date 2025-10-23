@@ -38,12 +38,10 @@
     image_id: "{{ provision_ec2_image_id }}"
     instance_type: "{{ provision_ec2_instance_type }}"
     key_name: "{{ provision_ec2_key_name }}"
-    vpc_subnet_id: "{{ provision_ec2_aws_vpc_id }}"
     availability_zone: "{{ provision_ec2_aws_availability_zone }}"
     network_interfaces:
       - device_index: 0
         assign_public_ip: true
-        subnet_id: "{{ provision_ec2_aws_subnet_id }}"
         groups:
           - "{{ provision_ec2_security_group_id }}"
     user_data: "{{ lookup('template', 'user_data.ps1.j2') }}"
