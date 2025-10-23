@@ -13,7 +13,7 @@
         assign_public_ip: true
         subnet_id: "{{ vpc_subnet_id }}"
         groups:
-          - {{ provision_ec2_security_group_id }}
+          - "{{ provision_ec2_security_group_id }}"
     user_data: "{{ lookup('template', 'user_data.ps1.j2') }}"
     wait: true
     wait_timeout: "{{ provision_ec2_wait_timeout }}"
