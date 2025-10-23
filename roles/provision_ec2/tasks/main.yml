@@ -11,34 +11,34 @@
   ansible.builtin.import_tasks: discover.yml
   tags: ['provision', 'discovery']
 
-- name: Manage SSH key pair
-  ansible.builtin.import_tasks: keypair.yml
-  tags: ['provision', 'keypair']
-
 - name: Ensure security group exists
   ansible.builtin.import_tasks: security_group.yml
   tags: ['provision', 'security_group']
 
-- name: Launch and wait for EC2 instance
-  ansible.builtin.import_tasks: instance.yml
-  tags: ['provision', 'instance']
+# - name: Manage SSH key pair
+#   ansible.builtin.import_tasks: keypair.yml
+#   tags: ['provision', 'keypair']
 
-- name: Manage Elastic IP association
-  ansible.builtin.import_tasks: elastic_ip.yml
-  tags: ['provision', 'network', 'elastic_ip']
+# - name: Launch and wait for EC2 instance
+#   ansible.builtin.import_tasks: instance.yml
+#   tags: ['provision', 'instance']
 
-- name: Store SSH key material in Vault
-  ansible.builtin.import_tasks: vault_store_ssh.yml
-  tags: ['provision', 'vault']
+# - name: Manage Elastic IP association
+#   ansible.builtin.import_tasks: elastic_ip.yml
+#   tags: ['provision', 'network', 'elastic_ip']
 
-- name: Tag root EBS volume
-  ansible.builtin.import_tasks: volume_tags.yml
-  tags: ['provision', 'volumes']
+# - name: Store SSH key material in Vault
+#   ansible.builtin.import_tasks: vault_store_ssh.yml
+#   tags: ['provision', 'vault']
 
-- name: Configure Route53 record
-  ansible.builtin.import_tasks: route53.yml
-  tags: ['provision', 'route53']
+# - name: Tag root EBS volume
+#   ansible.builtin.import_tasks: volume_tags.yml
+#   tags: ['provision', 'volumes']
 
-- name: Display provisioning summary
-  ansible.builtin.import_tasks: summary.yml
-  tags: ['provision', 'results']
+# - name: Configure Route53 record
+#   ansible.builtin.import_tasks: route53.yml
+#   tags: ['provision', 'route53']
+
+# - name: Display provisioning summary
+#   ansible.builtin.import_tasks: summary.yml
+#   tags: ['provision', 'results']

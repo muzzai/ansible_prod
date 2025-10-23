@@ -3,7 +3,7 @@
   amazon.aws.ec2_security_group:
     name: "{{ provision_ec2_security_group_name }}"
     description: "Security group for {{ provision_ec2_effective_name }}"
-    vpc_id: "{{ provision_ec2_aws_vpc_id }}"
+    vpc_id: "{{ provision_ec2_vpc_id }}"
     region: "{{ provision_ec2_aws_region }}"
     rules: "{{ provision_ec2_security_group_rules }}"
     state: present
