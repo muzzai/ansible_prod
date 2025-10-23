@@ -21,10 +21,27 @@
   ansible.builtin.debug:
     var: provision_ec2_security_group_result
 
-
 - name: Share security group details
   ansible.builtin.set_fact:
     provision_ec2_security_group_id: >
       "{{ provision_ec2_security_group_result.group_id }}"
   run_once: true
   tags: ['provision', 'security_group']
+
+
+- name: Create an Elastic Network Interface (ENI)
+  amazon.aws.ec2_eni:
+    state: present
+    subnet_id: "{{ provision_ec2_subnet_id }}"
+    description: "custom ENI"
+    security_groups:
+      - "{{ provision_ec2_security_group_id }}"
+    tags:
+      Name: "AnsibleManagedENI"
+  register: provision_ec2_eni_result
+
+- name: Debug sg result
+  ansible.builtin.debug:
+    var: provision_ec2_eni_result
+
+
