@@ -1,15 +1,35 @@
 ---
 - name: Debug inputs
   ansible.builtin.debug:
-    var:
-      - provision_ec2_effective_name
-      - provision_ec2_aws_region
-      - provision_ec2_image_id
-      - provision_ec2_instance_type
-      - provision_ec2_key_name
-      - provision_ec2_aws_vpc_id
-      - provision_ec2_aws_subnet_id
-      - provision_ec2_security_group_id
+    var: provision_ec2_effective_name
+
+- name: Debug inputs
+  ansible.builtin.debug:
+    var: provision_ec2_aws_region
+
+- name: Debug inputs
+  ansible.builtin.debug:
+    var: provision_ec2_image_id
+
+- name: Debug inputs
+  ansible.builtin.debug:
+    var: provision_ec2_instance_type
+
+- name: Debug inputs
+  ansible.builtin.debug:
+    var: provision_ec2_key_name
+
+- name: Debug inputs
+  ansible.builtin.debug:
+    var: provision_ec2_aws_vpc_id
+
+- name: Debug inputs
+  ansible.builtin.debug:
+    var: provision_ec2_aws_subnet_id
+
+- name: Debug inputs
+  ansible.builtin.debug:
+    var: provision_ec2_security_group_id
 
 - name: Launch EC2 instance
   amazon.aws.ec2_instance:
